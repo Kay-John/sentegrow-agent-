@@ -2,8 +2,9 @@ import os
 import threading
 import time
 from datetime import datetime, timezone, timedelta
+from functools import wraps
 
-from flask import Flask, request
+from flask import Flask, request, session, redirect, render_template, jsonify
 from twilio.rest import Client as TwilioClient
 from twilio.twiml.messaging_response import MessagingResponse
 from anthropic import Anthropic
@@ -12,6 +13,7 @@ from supabase import create_client
 from client_config import BUSINESS_NAME, SYSTEM_PROMPT, FOLLOW_UP_MESSAGE, RISK_DISCLAIMER
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "sentegrow-secret-2026")
 
 ai = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 twilio = TwilioClient(os.environ["TWILIO_ACCOUNT_SID"], os.environ["TWILIO_AUTH_TOKEN"])
@@ -19,6 +21,27 @@ sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 
 WHATSAPP_FROM = os.environ["TWILIO_WHATSAPP_FROM"]
 CLIENT_ID = os.environ["CLIENT_ID"]
+DASH_USER = os.environ.get("DASH_USERNAME", "Jusper001")
+DASH_PASS = os.environ.get("DASH_PASSWORD", "admin256")
+
+OUTREACH_MESSAGE = (
+    "👋 Hi! I came across your number and wanted to share something exciting.\n\n"
+    "I'm reaching out from *SenteGrow* — an investment platform where you can earn "
+    "daily returns on your investment. 💰\n\n"
+    "We have levels starting from just *UGX 10,000*.\n\n"
+    "Interested to learn more? Just reply and I'll walk you through everything! 😊"
+)
+
+
+# ── Auth decorator ────────────────────────────────────────────────────────────
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("logged_in"):
+            return redirect("/dashboard/login")
+        return f(*args, **kwargs)
+    return decorated
 
 
 # ── Database helpers ──────────────────────────────────────────────────────────
@@ -57,7 +80,7 @@ def get_ai_reply(history, user_message):
     return r.content[0].text
 
 
-# ── Webhook ───────────────────────────────────────────────────────────────────
+# ── WhatsApp Webhook ──────────────────────────────────────────────────────────
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -67,11 +90,8 @@ def webhook():
 
     resp = MessagingResponse()
 
-    # Ignore empty messages
     if not body and num_media == 0:
         return str(resp)
-
-    # Ignore images — this bot doesn't need screenshots
     if num_media > 0 and not body:
         return str(resp)
 
@@ -89,35 +109,31 @@ def webhook():
     # Re-subscribe
     if body.lower() == "start" and status == "opted_out":
         update_lead(phone, {"opted_in": True, "status": "new", "risk_accepted": False})
-        resp.message(f"Welcome back! 😊 Let me start by sharing important information about {BUSINESS_NAME}.")
-        update_lead(phone, {})
         resp.message(RISK_DISCLAIMER)
         return str(resp)
 
-    # Risk disclaimer gate — show to all new users
+    # Risk disclaimer gate
     if not risk_accepted:
         if body.upper() == "I AGREE":
             update_lead(phone, {"risk_accepted": True, "status": "interested"})
             resp.message(
                 f"Thank you for acknowledging the risks. 😊\n\n"
-                f"Welcome! I'm here to tell you all about *{BUSINESS_NAME}* and how it works.\n\n"
-                f"We have 3 active investment levels starting from as low as *UGX 10,000*. "
-                f"You can earn daily income for 90 days and also earn referral commissions.\n\n"
-                f"What would you like to know first?\n"
+                f"Welcome! I'm here to tell you all about *{BUSINESS_NAME}*.\n\n"
+                f"We have 3 active investment levels starting from *UGX 10,000*. "
+                f"Earn daily income for 90 days plus referral commissions.\n\n"
+                f"What would you like to know?\n"
                 f"1️⃣ Investment levels & returns\n"
                 f"2️⃣ How withdrawals work\n"
                 f"3️⃣ How to join\n"
                 f"4️⃣ Referral commissions"
             )
         else:
-            # Show disclaimer to new users regardless of what they said
             update_lead(phone, {"status": "new"})
             resp.message(RISK_DISCLAIMER)
         return str(resp)
 
     # Normal AI conversation
     reply = get_ai_reply(history, body)
-
     history = (history + [
         {"role": "user", "content": body},
         {"role": "assistant", "content": reply}
@@ -127,9 +143,120 @@ def webhook():
         status = "engaged"
 
     update_lead(phone, {"conversation_history": history, "status": status})
-
     resp.message(reply)
     return str(resp)
+
+
+# ── Subscription page ─────────────────────────────────────────────────────────
+
+@app.route("/subscribe", methods=["GET", "POST"])
+def subscribe():
+    if request.method == "POST":
+        sb.table("payment_submissions").insert({
+            "name": request.form.get("name"),
+            "phone": request.form.get("phone"),
+            "method": request.form.get("method"),
+            "amount": request.form.get("amount"),
+            "reference": request.form.get("reference"),
+            "message": request.form.get("message", ""),
+            "client_id": CLIENT_ID,
+            "submitted_at": datetime.now(timezone.utc).isoformat()
+        }).execute()
+        return render_template("subscribe.html", success=True)
+    return render_template("subscribe.html", success=False)
+
+
+# ── Dashboard auth ────────────────────────────────────────────────────────────
+
+@app.route("/dashboard/login", methods=["GET", "POST"])
+def dash_login():
+    if request.method == "POST":
+        if request.form.get("username") == DASH_USER and request.form.get("password") == DASH_PASS:
+            session["logged_in"] = True
+            return redirect("/dashboard")
+        return render_template("dash_login.html", error="Invalid username or password.")
+    return render_template("dash_login.html", error=None)
+
+
+@app.route("/dashboard/logout")
+def dash_logout():
+    session.clear()
+    return redirect("/dashboard/login")
+
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    leads = sb.table("bot_leads").select("*").eq("client_id", CLIENT_ID).order("last_message_at", desc=True).execute().data or []
+    payments = sb.table("payment_submissions").select("*").eq("client_id", CLIENT_ID).order("submitted_at", desc=True).execute().data or []
+
+    stats = {
+        "total": len(leads),
+        "interested": sum(1 for l in leads if l.get("status") == "interested"),
+        "engaged": sum(1 for l in leads if l.get("status") == "engaged"),
+        "payments": len(payments)
+    }
+
+    return render_template("dashboard.html", leads=leads, payments=payments, stats=stats, message=request.args.get("msg"), error=request.args.get("err"))
+
+
+@app.route("/dashboard/send", methods=["POST"])
+@login_required
+def dashboard_send():
+    phone = request.form.get("phone", "").strip().lstrip("+")
+    if not phone:
+        return redirect("/dashboard?err=Phone+number+is+required&tab=send")
+    try:
+        twilio.messages.create(
+            body=OUTREACH_MESSAGE,
+            from_=WHATSAPP_FROM,
+            to=f"whatsapp:+{phone}"
+        )
+        # Create lead record so conversation is tracked
+        r = sb.table("bot_leads").select("id").eq("phone", f"+{phone}").eq("client_id", CLIENT_ID).execute()
+        if not r.data:
+            sb.table("bot_leads").insert({
+                "phone": f"+{phone}",
+                "client_id": CLIENT_ID,
+                "status": "new",
+                "conversation_history": [],
+                "opted_in": True,
+                "risk_accepted": False
+            }).execute()
+        return redirect(f"/dashboard?msg=Message+sent+to+%2B{phone}")
+    except Exception as e:
+        return redirect(f"/dashboard?err={str(e)[:80]}")
+
+
+@app.route("/dashboard/send-bulk", methods=["POST"])
+@login_required
+def dashboard_send_bulk():
+    raw = request.form.get("phones", "")
+    phones = [p.strip().lstrip("+") for p in raw.splitlines() if p.strip()][:50]
+    sent, failed = 0, 0
+    for phone in phones:
+        try:
+            twilio.messages.create(
+                body=OUTREACH_MESSAGE,
+                from_=WHATSAPP_FROM,
+                to=f"whatsapp:+{phone}"
+            )
+            r = sb.table("bot_leads").select("id").eq("phone", f"+{phone}").eq("client_id", CLIENT_ID).execute()
+            if not r.data:
+                sb.table("bot_leads").insert({
+                    "phone": f"+{phone}",
+                    "client_id": CLIENT_ID,
+                    "status": "new",
+                    "conversation_history": [],
+                    "opted_in": True,
+                    "risk_accepted": False
+                }).execute()
+            sent += 1
+        except:
+            failed += 1
+    return redirect(f"/dashboard?msg=Sent+{sent}+messages.+{failed}+failed.")
 
 
 # ── Follow-up engine ──────────────────────────────────────────────────────────
@@ -173,7 +300,7 @@ threading.Thread(target=follow_up_engine, daemon=True).start()
 
 @app.route("/")
 def home():
-    return f"{BUSINESS_NAME} WhatsApp Agent is live. ✅"
+    return f"{BUSINESS_NAME} WhatsApp Agent is live. ✅ | <a href='/subscribe'>Subscribe</a> | <a href='/dashboard'>Dashboard</a>"
 
 
 if __name__ == "__main__":
