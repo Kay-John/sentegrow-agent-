@@ -152,16 +152,39 @@ def webhook():
 @app.route("/subscribe", methods=["GET", "POST"])
 def subscribe():
     if request.method == "POST":
+        name     = request.form.get("name", "")
+        phone    = request.form.get("phone", "")
+        method   = request.form.get("method", "")
+        amount   = request.form.get("amount", "")
+        reference = request.form.get("reference", "")
+        message  = request.form.get("message", "")
+
         sb.table("payment_submissions").insert({
-            "name": request.form.get("name"),
-            "phone": request.form.get("phone"),
-            "method": request.form.get("method"),
-            "amount": request.form.get("amount"),
-            "reference": request.form.get("reference"),
-            "message": request.form.get("message", ""),
-            "client_id": CLIENT_ID,
+            "name": name, "phone": phone, "method": method,
+            "amount": amount, "reference": reference,
+            "message": message, "client_id": CLIENT_ID,
             "submitted_at": datetime.now(timezone.utc).isoformat()
         }).execute()
+
+        # Notify Kay-John instantly via WhatsApp
+        try:
+            twilio.messages.create(
+                body=(
+                    f"💰 *NEW PAYMENT SUBMISSION — {BUSINESS_NAME}*\n\n"
+                    f"Name: {name}\n"
+                    f"Phone: {phone}\n"
+                    f"Method: {method}\n"
+                    f"Amount: {amount}\n"
+                    f"Reference: {reference}\n"
+                    f"Message: {message or '—'}\n\n"
+                    f"Action: Verify payment and activate their subscription in Supabase."
+                ),
+                from_=WHATSAPP_FROM,
+                to="whatsapp:+256793482095"
+            )
+        except Exception as e:
+            print(f"Payment notification failed: {e}")
+
         return render_template("subscribe.html", success=True)
     return render_template("subscribe.html", success=False)
 
