@@ -4,7 +4,7 @@ import time
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 
-from flask import Flask, request, session, redirect, render_template, jsonify
+from flask import Flask, request, session, redirect, render_template, jsonify, send_from_directory
 from twilio.rest import Client as TwilioClient
 from twilio.twiml.messaging_response import MessagingResponse
 from anthropic import Anthropic
@@ -297,6 +297,11 @@ threading.Thread(target=follow_up_engine, daemon=True).start()
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
+
+@app.route("/static/<path:filename>")
+def static_files(filename):
+    return send_from_directory("static", filename)
+
 
 @app.route("/")
 def home():

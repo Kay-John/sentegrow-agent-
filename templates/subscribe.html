@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Subscribe — SenteGrow WhatsApp Bot</title>
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1a56db">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SenteGrow">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
@@ -92,8 +97,14 @@
       <h3>📱 Airtel Money</h3>
       <p>
         Number: <span class="highlight">0755 994 232</span><br>
-        Name: <span class="highlight">Kabanda John</span>
+        Name: <span class="highlight">Kabanda John</span><br>
+        Merchant: <span class="highlight">JK Automation Ltd</span><br>
+        Merchant Code: <span class="highlight">7086971</span>
       </p>
+      <div style="margin-top:12px; text-align:center;">
+        <p style="font-size:0.82rem; color:#718096; margin-bottom:8px;">Scan QR code to pay instantly:</p>
+        <img src="/static/airtel_qr.png" alt="Airtel Money QR Code" style="width:200px; border:2px solid #e2e8f0; border-radius:8px;">
+      </div>
     </div>
 
     <div class="note">
@@ -144,5 +155,8 @@
   SenteGrow WhatsApp Bot &mdash; Powered by AI &mdash; Contact: 0793 482 095
 </div>
 
+<script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js').catch(()=>{});
+</script>
 </body>
 </html>

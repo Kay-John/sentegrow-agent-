@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SenteGrow — Outreach Dashboard</title>
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1a56db">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SenteGrow">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
@@ -195,5 +200,8 @@ function showTab(name) {
 }
 </script>
 
+<script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js').catch(()=>{});
+</script>
 </body>
 </html>
