@@ -142,6 +142,8 @@ def webhook():
     phone = "+" + raw_phone.lstrip("+")
     body = (payload.get("body") or "").strip()
     has_media = payload.get("hasMedia", False)
+    # Reply through whichever number received the message
+    reply_session = data.get("session", BOT_SESSION)
 
     if not body and not has_media:
         return jsonify({"status": "ignored"})
@@ -154,13 +156,13 @@ def webhook():
     # Opt-out
     if body.lower() in ["stop", "unsubscribe", "quit"]:
         update_lead(phone, {"opted_in": False, "status": "opted_out"})
-        waha_send(phone, f"You've been unsubscribed from {BUSINESS_NAME} messages. Reply START to re-subscribe anytime.")
+        waha_send(phone, f"You've been unsubscribed from {BUSINESS_NAME} messages. Reply START to re-subscribe anytime.", waha_session=reply_session)
         return jsonify({"status": "ok"})
 
     # Re-subscribe
     if body.lower() == "start" and status == "opted_out":
         update_lead(phone, {"opted_in": True, "status": "new", "risk_accepted": False})
-        waha_send(phone, RISK_DISCLAIMER)
+        waha_send(phone, RISK_DISCLAIMER, waha_session=reply_session)
         return jsonify({"status": "ok"})
 
     # Risk disclaimer gate
@@ -176,11 +178,12 @@ def webhook():
                 f"1️⃣ Investment levels & returns\n"
                 f"2️⃣ How withdrawals work\n"
                 f"3️⃣ How to join\n"
-                f"4️⃣ Referral commissions"
+                f"4️⃣ Referral commissions",
+                waha_session=reply_session
             )
         else:
             update_lead(phone, {"status": "new"})
-            waha_send(phone, RISK_DISCLAIMER)
+            waha_send(phone, RISK_DISCLAIMER, waha_session=reply_session)
         return jsonify({"status": "ok"})
 
     # Normal AI conversation
@@ -194,7 +197,7 @@ def webhook():
         status = "engaged"
 
     update_lead(phone, {"conversation_history": history, "status": status})
-    waha_send(phone, reply)
+    waha_send(phone, reply, waha_session=reply_session)
     return jsonify({"status": "ok"})
 
 
