@@ -262,13 +262,20 @@ def waha_headers():
 def waha_start_session():
     name = request.json.get("session", "bot")
     try:
-        r = requests.post(f"{WAHA_URL}/api/sessions", json={"name": name}, headers=waha_headers(), timeout=10)
+        # Try to start existing session first
+        r = requests.post(f"{WAHA_URL}/api/sessions/{name}/start",
+                          headers=waha_headers(), timeout=10)
         if r.status_code in (200, 201):
-            requests.post(f"{WAHA_URL}/api/sessions/{name}/start", headers=waha_headers(), timeout=10)
-            return jsonify({"message": f"Session '{name}' started. Loading QR..."})
-        # Already exists — just start it
-        requests.post(f"{WAHA_URL}/api/sessions/{name}/start", headers=waha_headers(), timeout=10)
-        return jsonify({"message": f"Session '{name}' started."})
+            return jsonify({"message": f"Session '{name}' started."})
+
+        # Session doesn't exist — create it with start=true
+        r = requests.post(f"{WAHA_URL}/api/sessions",
+                          json={"name": name, "start": True},
+                          headers=waha_headers(), timeout=10)
+        if r.status_code in (200, 201):
+            return jsonify({"message": f"Session '{name}' created and started."})
+
+        return jsonify({"message": f"Session response: {r.status_code} — {r.text[:200]}"})
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
 
