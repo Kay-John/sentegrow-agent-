@@ -89,6 +89,7 @@
     <button class="tab" onclick="showTab('bulk')">Bulk Outreach</button>
     <button class="tab" onclick="showTab('leads')">All Leads</button>
     <button class="tab" onclick="showTab('payments')">Payment Submissions</button>
+    <button class="tab" onclick="showTab('whatsapp')">📱 WhatsApp Sessions</button>
   </div>
 
   <!-- Send Single -->
@@ -189,6 +190,39 @@
     </div>
   </div>
 
+  <!-- WhatsApp Sessions -->
+  <div id="tab-whatsapp" class="panel">
+    <div class="card">
+      <h2>WhatsApp Sessions</h2>
+      <p style="font-size:0.88rem;color:#718096;margin-bottom:20px;">Start a session then scan the QR code with the phone you want to use as that number.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+        <div style="border:1px solid #e2e8f0;border-radius:10px;padding:20px;">
+          <h3 style="font-size:0.95rem;margin-bottom:12px;color:#1a56db;">🤖 Bot Number (replies to leads)</h3>
+          <button class="btn btn-primary" onclick="startSession('bot')" style="width:100%;margin-bottom:10px;">Start Bot Session</button>
+          <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="loadQR('bot')">Show QR Code</button>
+          <div id="qr-bot" style="margin-top:14px;text-align:center;"></div>
+          <div id="status-bot" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
+        </div>
+
+        <div style="border:1px solid #e2e8f0;border-radius:10px;padding:20px;">
+          <h3 style="font-size:0.95rem;margin-bottom:12px;color:#0e9f6e;">📤 Outreach Number (cold messages)</h3>
+          <button class="btn btn-primary" onclick="startSession('outreach')" style="width:100%;margin-bottom:10px;background:linear-gradient(135deg,#0e9f6e,#057a55);">Start Outreach Session</button>
+          <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="loadQR('outreach')">Show QR Code</button>
+          <div id="qr-outreach" style="margin-top:14px;text-align:center;"></div>
+          <div id="status-outreach" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:20px;">
+        <button class="btn" style="padding:11px 24px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="checkSessions()">🔄 Check Session Status</button>
+        <div id="session-status" style="margin-top:12px;font-size:0.88rem;"></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -197,6 +231,52 @@ function showTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   event.target.classList.add('active');
+}
+</script>
+
+<script>
+async function startSession(name) {
+  document.getElementById('status-' + name).textContent = 'Starting session...';
+  try {
+    const r = await fetch('/dashboard/waha/start-session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session: name})
+    });
+    const d = await r.json();
+    document.getElementById('status-' + name).textContent = d.message || 'Done';
+    setTimeout(() => loadQR(name), 2000);
+  } catch(e) {
+    document.getElementById('status-' + name).textContent = 'Error: ' + e.message;
+  }
+}
+
+async function loadQR(name) {
+  document.getElementById('status-' + name).textContent = 'Loading QR...';
+  document.getElementById('qr-' + name).innerHTML = '';
+  try {
+    const r = await fetch('/dashboard/waha/qr/' + name);
+    const d = await r.json();
+    if (d.qr) {
+      document.getElementById('qr-' + name).innerHTML = '<img src="' + d.qr + '" style="width:200px;border-radius:8px;">';
+      document.getElementById('status-' + name).textContent = 'Scan with WhatsApp on your phone';
+    } else {
+      document.getElementById('status-' + name).textContent = d.error || 'Could not load QR';
+    }
+  } catch(e) {
+    document.getElementById('status-' + name).textContent = 'Error: ' + e.message;
+  }
+}
+
+async function checkSessions() {
+  const r = await fetch('/dashboard/waha/sessions');
+  const d = await r.json();
+  document.getElementById('session-status').innerHTML = d.map(s =>
+    '<div style="padding:6px 0;border-bottom:1px solid #f0f4f8;">' +
+    '<strong>' + s.name + '</strong> — ' +
+    '<span style="color:' + (s.status === 'WORKING' ? '#0e9f6e' : '#e53e3e') + '">' + s.status + '</span>' +
+    '</div>'
+  ).join('');
 }
 </script>
 

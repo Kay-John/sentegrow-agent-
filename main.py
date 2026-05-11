@@ -252,6 +252,52 @@ def dash_logout():
     return redirect("/dashboard/login")
 
 
+# ── WAHA session management ───────────────────────────────────────────────────
+
+def waha_headers():
+    return {"X-Api-Key": WAHA_API_KEY, "Content-Type": "application/json"}
+
+@app.route("/dashboard/waha/start-session", methods=["POST"])
+@login_required
+def waha_start_session():
+    name = request.json.get("session", "bot")
+    try:
+        r = requests.post(f"{WAHA_URL}/api/sessions", json={"name": name}, headers=waha_headers(), timeout=10)
+        if r.status_code in (200, 201):
+            requests.post(f"{WAHA_URL}/api/sessions/{name}/start", headers=waha_headers(), timeout=10)
+            return jsonify({"message": f"Session '{name}' started. Loading QR..."})
+        # Already exists — just start it
+        requests.post(f"{WAHA_URL}/api/sessions/{name}/start", headers=waha_headers(), timeout=10)
+        return jsonify({"message": f"Session '{name}' started."})
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
+
+@app.route("/dashboard/waha/qr/<session_name>")
+@login_required
+def waha_qr(session_name):
+    try:
+        r = requests.get(f"{WAHA_URL}/api/{session_name}/auth/qr?format=image",
+                         headers=waha_headers(), timeout=10)
+        if r.status_code == 200:
+            import base64
+            img_b64 = base64.b64encode(r.content).decode()
+            return jsonify({"qr": f"data:image/png;base64,{img_b64}"})
+        return jsonify({"error": r.json().get("error", "Could not get QR")}), r.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/dashboard/waha/sessions")
+@login_required
+def waha_sessions():
+    try:
+        r = requests.get(f"{WAHA_URL}/api/sessions", headers=waha_headers(), timeout=10)
+        return jsonify(r.json() if r.status_code == 200 else [])
+    except Exception as e:
+        return jsonify([])
+
+
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @app.route("/dashboard")
