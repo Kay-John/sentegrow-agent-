@@ -1,6 +1,6 @@
 flask
 gunicorn
-twilio
+requests
 anthropic
 supabase
 python-dotenv
