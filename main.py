@@ -24,8 +24,8 @@ DASH_PASS        = os.environ.get("DASH_PASSWORD", "admin256")
 # ── WAHA config ───────────────────────────────────────────────────────────────
 WAHA_URL         = os.environ.get("WAHA_URL", "").rstrip("/")  # https://waha-xxx.railway.app
 WAHA_API_KEY     = os.environ.get("WAHA_API_KEY", "")
-BOT_SESSION      = os.environ.get("BOT_SESSION", "bot")        # main bot number session
-OUTREACH_SESSION = os.environ.get("OUTREACH_SESSION", "outreach")  # cold outreach number session
+BOT_SESSION      = os.environ.get("BOT_SESSION", "default")
+OUTREACH_SESSION = os.environ.get("OUTREACH_SESSION", "default")
 OWNER_PHONE      = os.environ.get("OWNER_PHONE", "256793482095")   # notification target
 
 OUTREACH_MESSAGE = (
