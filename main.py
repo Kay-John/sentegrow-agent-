@@ -288,17 +288,25 @@ def waha_start_session():
 @login_required
 def waha_qr(session_name):
     try:
-        # Restart session if stopped
-        requests.post(f"{WAHA_URL}/api/sessions/{session_name}/restart",
+        # Check current status — never restart a working session
+        status_r = requests.get(f"{WAHA_URL}/api/sessions/{session_name}",
+                                headers=waha_headers(), timeout=10)
+        if status_r.status_code == 200:
+            info = status_r.json()
+            if info.get("status") == "WORKING":
+                return jsonify({"connected": True, "message": "✅ WhatsApp connected and running!"})
+
+        # Session is stopped or scan needed — start it
+        requests.post(f"{WAHA_URL}/api/sessions/{session_name}/start",
                       headers=waha_headers(), timeout=30)
 
         import time as t
         t.sleep(2)
 
+        import base64
         r = requests.get(f"{WAHA_URL}/api/{session_name}/auth/qr?format=image",
                          headers=waha_headers(), timeout=30)
         if r.status_code == 200:
-            import base64
             img_b64 = base64.b64encode(r.content).decode()
             return jsonify({"qr": f"data:image/png;base64,{img_b64}"})
         return jsonify({"error": r.json().get("error", "Could not get QR — try again")}), r.status_code

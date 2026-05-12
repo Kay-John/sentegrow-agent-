@@ -260,11 +260,17 @@ async function loadQR(name) {
 }
 
 async function fetchQR(name) {
-  document.getElementById('status-' + name).textContent = 'Refreshing QR...';
+  document.getElementById('status-' + name).textContent = 'Checking session...';
   try {
     const r = await fetch('/dashboard/waha/qr/' + name);
     const d = await r.json();
-    if (d.qr) {
+    if (d.connected) {
+      // Session is WORKING — stop polling, show connected state
+      if (qrInterval) { clearInterval(qrInterval); qrInterval = null; }
+      document.getElementById('qr-' + name).innerHTML =
+        '<div style="padding:20px;background:#ecfdf5;border-radius:8px;border:2px solid #10b981;text-align:center;font-size:1.1rem;">✅ Connected</div>';
+      document.getElementById('status-' + name).textContent = d.message || 'WhatsApp is connected and receiving messages.';
+    } else if (d.qr) {
       document.getElementById('qr-' + name).innerHTML = '<img src="' + d.qr + '" style="width:220px;border-radius:8px;border:3px solid #1a56db;">';
       document.getElementById('status-' + name).textContent = '⚡ Fresh QR — scan NOW with WhatsApp → Linked Devices';
     } else {
