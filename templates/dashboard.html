@@ -200,18 +200,18 @@
 
         <div style="border:1px solid #e2e8f0;border-radius:10px;padding:20px;">
           <h3 style="font-size:0.95rem;margin-bottom:12px;color:#1a56db;">🤖 Bot Number (replies to leads)</h3>
-          <button class="btn btn-primary" onclick="startSession('bot')" style="width:100%;margin-bottom:10px;">Start Bot Session</button>
-          <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="loadQR('bot')">Show QR Code</button>
-          <div id="qr-bot" style="margin-top:14px;text-align:center;"></div>
-          <div id="status-bot" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
+          <button class="btn btn-primary" onclick="startSession('default')" style="width:100%;margin-bottom:10px;">Start Bot Session</button>
+          <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="loadQR('default')">Show QR Code</button>
+          <div id="qr-default" style="margin-top:14px;text-align:center;"></div>
+          <div id="status-default" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
         </div>
 
         <div style="border:1px solid #e2e8f0;border-radius:10px;padding:20px;">
           <h3 style="font-size:0.95rem;margin-bottom:12px;color:#0e9f6e;">📤 Outreach Number (cold messages)</h3>
-          <button class="btn btn-primary" onclick="startSession('outreach')" style="width:100%;margin-bottom:10px;background:linear-gradient(135deg,#0e9f6e,#057a55);">Start Outreach Session</button>
-          <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="loadQR('outreach')">Show QR Code</button>
-          <div id="qr-outreach" style="margin-top:14px;text-align:center;"></div>
-          <div id="status-outreach" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
+          <p style="font-size:0.82rem;color:#718096;margin-bottom:12px;">Uses the same session. Deploy a second WAHA instance for a separate outreach number.</p>
+          <button class="btn btn-primary" onclick="loadQR('default')" style="width:100%;margin-bottom:10px;background:linear-gradient(135deg,#0e9f6e,#057a55);">Show QR Code</button>
+          <div id="qr-default2" style="margin-top:14px;text-align:center;"></div>
+          <div id="status-default2" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
         </div>
 
       </div>
