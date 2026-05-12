@@ -251,15 +251,22 @@ async function startSession(name) {
   }
 }
 
+let qrInterval = null;
+
 async function loadQR(name) {
-  document.getElementById('status-' + name).textContent = 'Loading QR...';
-  document.getElementById('qr-' + name).innerHTML = '';
+  if (qrInterval) clearInterval(qrInterval);
+  await fetchQR(name);
+  qrInterval = setInterval(() => fetchQR(name), 20000);
+}
+
+async function fetchQR(name) {
+  document.getElementById('status-' + name).textContent = 'Refreshing QR...';
   try {
     const r = await fetch('/dashboard/waha/qr/' + name);
     const d = await r.json();
     if (d.qr) {
-      document.getElementById('qr-' + name).innerHTML = '<img src="' + d.qr + '" style="width:200px;border-radius:8px;">';
-      document.getElementById('status-' + name).textContent = 'Scan with WhatsApp on your phone';
+      document.getElementById('qr-' + name).innerHTML = '<img src="' + d.qr + '" style="width:220px;border-radius:8px;border:3px solid #1a56db;">';
+      document.getElementById('status-' + name).textContent = '⚡ Fresh QR — scan NOW with WhatsApp → Linked Devices';
     } else {
       document.getElementById('status-' + name).textContent = d.error || 'Could not load QR';
     }
