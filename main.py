@@ -288,13 +288,20 @@ def waha_start_session():
 @login_required
 def waha_qr(session_name):
     try:
+        # Restart session if stopped
+        requests.post(f"{WAHA_URL}/api/sessions/{session_name}/restart",
+                      headers=waha_headers(), timeout=30)
+
+        import time as t
+        t.sleep(2)
+
         r = requests.get(f"{WAHA_URL}/api/{session_name}/auth/qr?format=image",
                          headers=waha_headers(), timeout=30)
         if r.status_code == 200:
             import base64
             img_b64 = base64.b64encode(r.content).decode()
             return jsonify({"qr": f"data:image/png;base64,{img_b64}"})
-        return jsonify({"error": r.json().get("error", "Could not get QR")}), r.status_code
+        return jsonify({"error": r.json().get("error", "Could not get QR — try again")}), r.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
