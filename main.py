@@ -131,8 +131,8 @@ def webhook():
 
     raw_from = payload.get("from", "")
 
-    # Skip group messages
-    if "@g.us" in raw_from:
+    # Skip group and broadcast messages
+    if "@g.us" in raw_from or "@broadcast" in raw_from:
         return jsonify({"status": "ignored"})
 
     raw_phone = raw_from.replace("@c.us", "")
