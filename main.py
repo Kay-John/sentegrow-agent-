@@ -264,14 +264,14 @@ def waha_start_session():
     try:
         # Try to start existing session first
         r = requests.post(f"{WAHA_URL}/api/sessions/{name}/start",
-                          headers=waha_headers(), timeout=10)
+                          headers=waha_headers(), timeout=30)
         if r.status_code in (200, 201):
             return jsonify({"message": f"Session '{name}' started."})
 
         # Session doesn't exist — create it with start=true
         r = requests.post(f"{WAHA_URL}/api/sessions",
                           json={"name": name, "start": True},
-                          headers=waha_headers(), timeout=10)
+                          headers=waha_headers(), timeout=30)
         if r.status_code in (200, 201):
             return jsonify({"message": f"Session '{name}' created and started."})
 
@@ -285,7 +285,7 @@ def waha_start_session():
 def waha_qr(session_name):
     try:
         r = requests.get(f"{WAHA_URL}/api/{session_name}/auth/qr?format=image",
-                         headers=waha_headers(), timeout=10)
+                         headers=waha_headers(), timeout=30)
         if r.status_code == 200:
             import base64
             img_b64 = base64.b64encode(r.content).decode()
@@ -299,7 +299,7 @@ def waha_qr(session_name):
 @login_required
 def waha_sessions():
     try:
-        r = requests.get(f"{WAHA_URL}/api/sessions", headers=waha_headers(), timeout=10)
+        r = requests.get(f"{WAHA_URL}/api/sessions", headers=waha_headers(), timeout=30)
         return jsonify(r.json() if r.status_code == 200 else [])
     except Exception as e:
         return jsonify([])
