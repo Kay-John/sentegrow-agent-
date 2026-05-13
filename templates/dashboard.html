@@ -3,106 +3,258 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SenteGrow — Outreach Dashboard</title>
+<title>SenteGrow — Dashboard</title>
 <link rel="manifest" href="/static/manifest.json">
-<meta name="theme-color" content="#1a56db">
+<meta name="theme-color" content="#0f172a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SenteGrow">
 <link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
-  .topbar { background: linear-gradient(135deg, #1a56db, #0e9f6e); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
-  .topbar h1 { font-size: 1.1rem; }
-  .topbar a { color: white; text-decoration: none; font-size: 0.85rem; opacity: 0.85; }
-  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-  .tab { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; border: none; background: white; color: #4a5568; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .tab.active { background: #1a56db; color: white; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #1a56db;
+    --blue-dark: #1447b8;
+    --green: #0e9f6e;
+    --navy: #0f172a;
+    --navy-mid: #1e293b;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+    --danger: #ef4444;
+    --amber: #f59e0b;
+  }
+
+  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Topbar ── */
+  .topbar {
+    background: var(--navy);
+    color: white;
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; }
+  .topbar-logo {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue), var(--green));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700; color: white;
+  }
+  .topbar-brand h1 { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+  .topbar-brand span { font-size: 0.72rem; color: #94a3b8; font-weight: 400; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .topbar-right a {
+    color: #94a3b8; text-decoration: none; font-size: 0.82rem; font-weight: 500;
+    transition: color 0.15s;
+  }
+  .topbar-right a:hover { color: white; }
+
+  /* ── Layout ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 28px 20px; }
+
+  /* ── Alerts ── */
+  .alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+  .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+  .alert-error   { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+  /* ── Stats ── */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-box {
+    background: var(--card); border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .stat-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent, var(--blue));
+  }
+  .stat-box:nth-child(1) { --accent: var(--blue); }
+  .stat-box:nth-child(2) { --accent: var(--green); }
+  .stat-box:nth-child(3) { --accent: var(--amber); }
+  .stat-box:nth-child(4) { --accent: #8b5cf6; }
+  .stat-icon { font-size: 1.3rem; margin-bottom: 10px; }
+  .stat-number { font-size: 2rem; font-weight: 700; color: var(--text); line-height: 1; }
+  .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--card); padding: 5px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border); flex-wrap: wrap; }
+  .tab {
+    padding: 9px 18px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+    font-weight: 500; border: none; background: transparent; color: var(--muted);
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--bg); }
+  .tab.active { background: var(--blue); color: white; font-weight: 600; box-shadow: 0 2px 8px rgba(26,86,219,0.3); }
   .panel { display: none; }
   .panel.active { display: block; }
-  .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 20px; }
-  .card h2 { font-size: 1rem; color: #1a56db; margin-bottom: 16px; }
-  label { display: block; font-size: 0.85rem; font-weight: 600; color: #4a5568; margin-bottom: 6px; margin-top: 12px; }
-  input, textarea, select { width: 100%; padding: 11px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; outline: none; }
-  input:focus, textarea:focus { border-color: #1a56db; }
-  .btn { padding: 11px 24px; border-radius: 8px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
-  .btn-primary { background: #1a56db; color: white; margin-top: 14px; }
-  .btn-primary:hover { background: #1447b8; }
-  .note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 14px; border-radius: 6px; font-size: 0.83rem; color: #92400e; margin-top: 12px; }
-  .alert-success { background: #ecfdf5; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 8px; color: #065f46; margin-bottom: 16px; font-size: 0.9rem; }
-  .alert-error { background: #fff5f5; border-left: 4px solid #fc8181; padding: 12px 16px; border-radius: 8px; color: #c53030; margin-bottom: 16px; font-size: 0.9rem; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-  th { text-align: left; padding: 10px 12px; background: #f7fafc; color: #4a5568; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
-  td { padding: 10px 12px; border-bottom: 1px solid #f0f4f8; }
-  tr:hover td { background: #f7fafc; }
-  .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
-  .badge-new { background: #e8f0fe; color: #1a56db; }
-  .badge-interested { background: #e6fffa; color: #0e9f6e; }
-  .badge-engaged { background: #fef3c7; color: #d97706; }
-  .badge-opted_out { background: #fee2e2; color: #dc2626; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .stat-box { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .stat-box .number { font-size: 2rem; font-weight: bold; color: #1a56db; }
-  .stat-box .label { font-size: 0.82rem; color: #718096; margin-top: 4px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card); border-radius: 14px; padding: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    border: 1px solid var(--border); margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 0.95rem; font-weight: 600; color: var(--text);
+    margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: ''; width: 3px; height: 18px; background: var(--blue);
+    border-radius: 2px; display: inline-block;
+  }
+
+  /* ── Forms ── */
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; margin-top: 16px; text-transform: uppercase; letter-spacing: 0.04em; }
+  input, textarea, select {
+    width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
+    border-radius: 9px; font-size: 0.9rem; outline: none; font-family: inherit;
+    background: #f8fafc; color: var(--text); transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--blue); background: white;
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+  }
+  .note {
+    background: #fffbeb; border: 1px solid #fde68a; border-left: 3px solid var(--amber);
+    padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; color: #78350f; margin-top: 14px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 11px 22px; border-radius: 9px; border: none; font-size: 0.88rem;
+    font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue), #2563eb);
+    color: white; margin-top: 16px;
+    box-shadow: 0 2px 8px rgba(26,86,219,0.25);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,86,219,0.35); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-danger { background: var(--danger); color: white; box-shadow: 0 2px 8px rgba(239,68,68,0.25); }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-ghost { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--border); }
+  .btn-full { width: 100%; justify-content: center; margin-top: 10px; }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  thead { background: #f8fafc; }
+  th { text-align: left; padding: 11px 14px; color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #f8fafc; }
+
+  /* ── Badges ── */
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+  .badge-new           { background: #eff6ff; color: #1d4ed8; }
+  .badge-interested    { background: #f0fdf4; color: #166534; }
+  .badge-engaged       { background: #fffbeb; color: #92400e; }
+  .badge-opted_out     { background: #fef2f2; color: #991b1b; }
+
+  /* ── Empty state ── */
+  .empty { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+  .empty p { font-size: 0.9rem; }
+
+  /* ── WhatsApp session panel ── */
+  .session-box { border: 1.5px solid var(--border); border-radius: 12px; padding: 24px; max-width: 420px; margin: 0 auto; }
+  .session-box h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; display: inline-block; }
+  .status-dot.live { background: var(--green); box-shadow: 0 0 6px rgba(14,159,110,0.5); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  @media(max-width:600px) {
+    .topbar { padding: 0 16px; }
+    .container { padding: 20px 14px; }
+    .card { padding: 20px 16px; }
+    .stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+  }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <h1>SenteGrow — WhatsApp Bot Dashboard</h1>
-  <a href="/dashboard/logout">Sign Out</a>
+  <div class="topbar-brand">
+    <div class="topbar-logo">SG</div>
+    <div>
+      <h1>SenteGrow</h1>
+      <span>WhatsApp Bot Dashboard</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <a href="/dashboard/logout">Sign Out</a>
+  </div>
 </div>
 
 <div class="container">
 
   {% if message %}
-  <div class="alert-success">{{ message }}</div>
+  <div class="alert alert-success">✅ {{ message }}</div>
   {% endif %}
   {% if error %}
-  <div class="alert-error">{{ error }}</div>
+  <div class="alert alert-error">⚠️ {{ error }}</div>
   {% endif %}
 
   <!-- Stats -->
   <div class="stats">
     <div class="stat-box">
-      <div class="number">{{ stats.total }}</div>
-      <div class="label">Total Leads</div>
+      <div class="stat-icon">👥</div>
+      <div class="stat-number">{{ stats.total }}</div>
+      <div class="stat-label">Total Leads</div>
     </div>
     <div class="stat-box">
-      <div class="number">{{ stats.interested }}</div>
-      <div class="label">Interested</div>
+      <div class="stat-icon">💬</div>
+      <div class="stat-number">{{ stats.interested }}</div>
+      <div class="stat-label">Interested</div>
     </div>
     <div class="stat-box">
-      <div class="number">{{ stats.engaged }}</div>
-      <div class="label">Engaged</div>
+      <div class="stat-icon">🔥</div>
+      <div class="stat-number">{{ stats.engaged }}</div>
+      <div class="stat-label">Engaged</div>
     </div>
     <div class="stat-box">
-      <div class="number">{{ stats.payments }}</div>
-      <div class="label">Payment Submissions</div>
+      <div class="stat-icon">💰</div>
+      <div class="stat-number">{{ stats.payments }}</div>
+      <div class="stat-label">Payments</div>
     </div>
   </div>
 
   <!-- Tabs -->
   <div class="tabs">
-    <button class="tab active" onclick="showTab('send')">Send Message</button>
-    <button class="tab" onclick="showTab('bulk')">Bulk Outreach</button>
-    <button class="tab" onclick="showTab('leads')">All Leads</button>
-    <button class="tab" onclick="showTab('payments')">Payment Submissions</button>
-    <button class="tab" onclick="showTab('whatsapp')">📱 WhatsApp Sessions</button>
+    <button class="tab active" onclick="showTab('send', this)">📤 Send Message</button>
+    <button class="tab" onclick="showTab('bulk', this)">📋 Bulk Outreach</button>
+    <button class="tab" onclick="showTab('leads', this)">👥 All Leads</button>
+    <button class="tab" onclick="showTab('payments', this)">💰 Payments</button>
+    <button class="tab" onclick="showTab('whatsapp', this)">📱 WhatsApp</button>
   </div>
 
   <!-- Send Single -->
   <div id="tab-send" class="panel active">
     <div class="card">
-      <h2>Send Opening Message to a New Number</h2>
+      <div class="card-title">Send Opening Message</div>
       <form method="POST" action="/dashboard/send">
         <label>WhatsApp Number (with country code)</label>
         <input type="tel" name="phone" placeholder="e.g. 256771234567" required>
         <div class="note">
-          ⚠️ Make sure the WhatsApp session is connected before sending. The recipient will receive the outreach message and the bot will handle their reply automatically.
+          ⚠️ Ensure the WhatsApp session is connected before sending. The bot handles all replies automatically.
         </div>
-        <button type="submit" class="btn btn-primary">Send Message</button>
+        <button type="submit" class="btn btn-primary">Send Message →</button>
       </form>
     </div>
   </div>
@@ -110,14 +262,14 @@
   <!-- Bulk Send -->
   <div id="tab-bulk" class="panel">
     <div class="card">
-      <h2>Bulk Outreach — Multiple Numbers</h2>
+      <div class="card-title">Bulk Outreach</div>
       <form method="POST" action="/dashboard/send-bulk">
-        <label>Phone Numbers (one per line, with country code)</label>
-        <textarea name="phones" rows="8" placeholder="256771234567&#10;256782345678&#10;256793456789" required></textarea>
+        <label>Phone Numbers — one per line</label>
+        <textarea name="phones" rows="9" placeholder="256771234567&#10;256782345678&#10;256793456789" required></textarea>
         <div class="note">
-          ⚠️ Messages are sent one by one with a 45-second gap to avoid spam detection. Up to 50 numbers at a time.
+          ⚠️ Sent one by one with a 45-second gap to avoid spam detection. Up to 50 numbers per batch.
         </div>
-        <button type="submit" class="btn btn-primary">Send to All</button>
+        <button type="submit" class="btn btn-primary">Send to All →</button>
       </form>
     </div>
   </div>
@@ -125,32 +277,37 @@
   <!-- Leads Table -->
   <div id="tab-leads" class="panel">
     <div class="card">
-      <h2>All Leads</h2>
+      <div class="card-title">All Leads</div>
       {% if leads %}
-      <table>
-        <thead>
-          <tr>
-            <th>Phone</th>
-            <th>Status</th>
-            <!-- <th>Risk Accepted</th> -->
-            <th>Last Active</th>
-            <th>Followed Up</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for lead in leads %}
-          <tr>
-            <td>{{ lead.phone }}</td>
-            <td><span class="badge badge-{{ lead.status }}">{{ lead.status }}</span></td>
-            <!-- <td>{{ '✅' if lead.risk_accepted else '❌' }}</td> -->
-            <td>{{ lead.last_message_at[:16].replace('T',' ') if lead.last_message_at else '—' }}</td>
-            <td>{{ '✅' if lead.followed_up else '❌' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Phone</th>
+              <th>Status</th>
+              <!-- <th>Risk Accepted</th> -->
+              <th>Last Active</th>
+              <th>Followed Up</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for lead in leads %}
+            <tr>
+              <td><strong>{{ lead.phone }}</strong></td>
+              <td><span class="badge badge-{{ lead.status }}">{{ lead.status }}</span></td>
+              <!-- <td>{{ '✅' if lead.risk_accepted else '❌' }}</td> -->
+              <td>{{ lead.last_message_at[:16].replace('T',' ') if lead.last_message_at else '—' }}</td>
+              <td>{{ '✅' if lead.followed_up else '❌' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
       {% else %}
-      <p style="color:#718096; font-size:0.9rem;">No leads yet.</p>
+      <div class="empty">
+        <div class="empty-icon">👥</div>
+        <p>No leads yet. Send your first outreach message to get started.</p>
+      </div>
       {% endif %}
     </div>
   </div>
@@ -158,68 +315,66 @@
   <!-- Payment Submissions -->
   <div id="tab-payments" class="panel">
     <div class="card">
-      <h2>Payment Submissions</h2>
+      <div class="card-title">Payment Submissions</div>
       {% if payments %}
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Method</th>
-            <th>Amount</th>
-            <th>Reference</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in payments %}
-          <tr>
-            <td>{{ p.name }}</td>
-            <td>{{ p.phone }}</td>
-            <td>{{ p.method }}</td>
-            <td>{{ p.amount }}</td>
-            <td>{{ p.reference }}</td>
-            <td>{{ p.submitted_at[:10] if p.submitted_at else '—' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Method</th>
+              <th>Amount</th>
+              <th>Reference</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in payments %}
+            <tr>
+              <td><strong>{{ p.name }}</strong></td>
+              <td>{{ p.phone }}</td>
+              <td>{{ p.method }}</td>
+              <td><strong>{{ p.amount }}</strong></td>
+              <td><code style="font-size:0.8rem;background:#f1f5f9;padding:2px 6px;border-radius:4px;">{{ p.reference }}</code></td>
+              <td>{{ p.submitted_at[:10] if p.submitted_at else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
       {% else %}
-      <p style="color:#718096; font-size:0.9rem;">No payment submissions yet.</p>
+      <div class="empty">
+        <div class="empty-icon">💰</div>
+        <p>No payment submissions yet.</p>
+      </div>
       {% endif %}
     </div>
   </div>
 
-  <!-- WhatsApp Sessions -->
+  <!-- WhatsApp Session -->
   <div id="tab-whatsapp" class="panel">
     <div class="card">
-      <h2>WhatsApp Sessions</h2>
-      <p style="font-size:0.88rem;color:#718096;margin-bottom:20px;">Start a session then scan the QR code with the phone you want to use as that number.</p>
+      <div class="card-title">WhatsApp Connection</div>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:24px;">Connect the client's WhatsApp number by scanning the QR code below.</p>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="session-box">
+        <h3>
+          <span class="status-dot" id="dot-default"></span>
+          Bot Number
+        </h3>
 
-        <div style="border:1px solid #e2e8f0;border-radius:10px;padding:20px;">
-          <h3 style="font-size:0.95rem;margin-bottom:12px;color:#1a56db;">🤖 Bot Number (replies to leads)</h3>
-          <button class="btn btn-primary" onclick="startSession('default')" style="width:100%;margin-bottom:10px;">Start Bot Session</button>
-          <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:none;background:#e53e3e;color:white;cursor:pointer;font-size:0.9rem;font-weight:600;margin-bottom:10px;" onclick="restartSession('default')">🔄 Restart Session</button>
-          <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="loadQR('default')">Show QR Code</button>
-          <div id="qr-default" style="margin-top:14px;text-align:center;"></div>
-          <div id="status-default" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
-        </div>
+        <button class="btn btn-primary btn-full" onclick="startSession('default')">Start Session</button>
+        <button class="btn btn-danger btn-full" onclick="restartSession('default')">🔄 Restart &amp; Reconnect</button>
+        <button class="btn btn-ghost btn-full" onclick="loadQR('default')" style="margin-top:8px;">Show QR Code</button>
 
-        <div style="border:1px solid #e2e8f0;border-radius:10px;padding:20px;">
-          <h3 style="font-size:0.95rem;margin-bottom:12px;color:#0e9f6e;">📤 Outreach Number (cold messages)</h3>
-          <p style="font-size:0.82rem;color:#718096;margin-bottom:12px;">Uses the same session. Deploy a second WAHA instance for a separate outreach number.</p>
-          <button class="btn btn-primary" onclick="loadQR('default')" style="width:100%;margin-bottom:10px;background:linear-gradient(135deg,#0e9f6e,#057a55);">Show QR Code</button>
-          <div id="qr-default2" style="margin-top:14px;text-align:center;"></div>
-          <div id="status-default2" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
-        </div>
-
+        <div id="qr-default" style="margin-top:18px;text-align:center;"></div>
+        <div id="status-default" style="margin-top:10px;font-size:0.82rem;color:var(--muted);text-align:center;"></div>
       </div>
 
-      <div style="margin-top:20px;">
-        <button class="btn" style="padding:11px 24px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="checkSessions()">🔄 Check Session Status</button>
-        <div id="session-status" style="margin-top:12px;font-size:0.88rem;"></div>
+      <div style="margin-top:20px;text-align:center;">
+        <button class="btn btn-ghost" onclick="checkSessions()">🔄 Check Status</button>
+        <div id="session-status" style="margin-top:12px;font-size:0.86rem;"></div>
       </div>
     </div>
   </div>
@@ -227,23 +382,21 @@
 </div>
 
 <script>
-function showTab(name) {
+function showTab(name, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+  el.classList.add('active');
 }
-</script>
 
-<script>
 async function restartSession(name) {
-  document.getElementById('status-' + name).textContent = 'Restarting session...';
+  document.getElementById('status-' + name).textContent = 'Restarting…';
   document.getElementById('qr-' + name).innerHTML = '';
+  setDot(name, false);
   if (qrInterval) { clearInterval(qrInterval); qrInterval = null; }
   try {
     const r = await fetch('/dashboard/waha/restart-session', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({session: name})
     });
     const d = await r.json();
@@ -255,11 +408,10 @@ async function restartSession(name) {
 }
 
 async function startSession(name) {
-  document.getElementById('status-' + name).textContent = 'Starting session...';
+  document.getElementById('status-' + name).textContent = 'Starting…';
   try {
     const r = await fetch('/dashboard/waha/start-session', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({session: name})
     });
     const d = await r.json();
@@ -278,20 +430,27 @@ async function loadQR(name) {
   qrInterval = setInterval(() => fetchQR(name), 20000);
 }
 
+function setDot(name, live) {
+  const dot = document.getElementById('dot-' + name);
+  if (dot) { dot.className = 'status-dot' + (live ? ' live' : ''); }
+}
+
 async function fetchQR(name) {
-  document.getElementById('status-' + name).textContent = 'Checking session...';
+  document.getElementById('status-' + name).textContent = 'Checking…';
   try {
     const r = await fetch('/dashboard/waha/qr/' + name);
     const d = await r.json();
     if (d.connected) {
-      // Session is WORKING — stop polling, show connected state
       if (qrInterval) { clearInterval(qrInterval); qrInterval = null; }
+      setDot(name, true);
       document.getElementById('qr-' + name).innerHTML =
-        '<div style="padding:20px;background:#ecfdf5;border-radius:8px;border:2px solid #10b981;text-align:center;font-size:1.1rem;">✅ Connected</div>';
-      document.getElementById('status-' + name).textContent = d.message || 'WhatsApp is connected and receiving messages.';
+        '<div style="padding:16px 20px;background:#f0fdf4;border-radius:10px;border:1.5px solid #86efac;color:#166534;font-weight:600;font-size:0.9rem;">✅ WhatsApp Connected</div>';
+      document.getElementById('status-' + name).textContent = d.message || 'Receiving messages.';
     } else if (d.qr) {
-      document.getElementById('qr-' + name).innerHTML = '<img src="' + d.qr + '" style="width:220px;border-radius:8px;border:3px solid #1a56db;">';
-      document.getElementById('status-' + name).textContent = '⚡ Fresh QR — scan NOW with WhatsApp → Linked Devices';
+      setDot(name, false);
+      document.getElementById('qr-' + name).innerHTML =
+        '<img src="' + d.qr + '" style="width:220px;border-radius:10px;border:3px solid var(--blue);">';
+      document.getElementById('status-' + name).textContent = '⚡ Scan with WhatsApp → Linked Devices';
     } else {
       document.getElementById('status-' + name).textContent = d.error || 'Could not load QR';
     }
@@ -301,14 +460,21 @@ async function fetchQR(name) {
 }
 
 async function checkSessions() {
-  const r = await fetch('/dashboard/waha/sessions');
-  const d = await r.json();
-  document.getElementById('session-status').innerHTML = d.map(s =>
-    '<div style="padding:6px 0;border-bottom:1px solid #f0f4f8;">' +
-    '<strong>' + s.name + '</strong> — ' +
-    '<span style="color:' + (s.status === 'WORKING' ? '#0e9f6e' : '#e53e3e') + '">' + s.status + '</span>' +
-    '</div>'
-  ).join('');
+  try {
+    const r = await fetch('/dashboard/waha/sessions');
+    const d = await r.json();
+    const live = d.some(s => s.status === 'WORKING');
+    setDot('default', live);
+    document.getElementById('session-status').innerHTML = d.map(s =>
+      '<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:' +
+      (s.status === 'WORKING' ? '#f0fdf4;color:#166534;border:1px solid #86efac' : '#fef2f2;color:#991b1b;border:1px solid #fecaca') +
+      ';border-radius:20px;font-size:0.82rem;font-weight:600;">' +
+      '<span style="width:7px;height:7px;border-radius:50%;background:' + (s.status === 'WORKING' ? '#16a34a' : '#dc2626') + ';"></span>' +
+      s.name + ' — ' + s.status + '</span>'
+    ).join(' ');
+  } catch(e) {
+    document.getElementById('session-status').textContent = 'Could not check status';
+  }
 }
 </script>
 
