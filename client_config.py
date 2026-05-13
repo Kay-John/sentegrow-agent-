@@ -12,17 +12,18 @@ FOLLOW_UP_MESSAGE = (
     "Any questions? I'm happy to help! 😊"
 )
 
-RISK_DISCLAIMER = (
-    "⚠️ *IMPORTANT — Please Read Before Proceeding*\n\n"
-    "SenteGrow is a *HIGH RISK* investment platform. Key facts:\n\n"
-    "• Your invested capital *cannot be withdrawn* — only earnings can\n"
-    "• You must refer *3 people every 5 days* to be eligible to withdraw\n"
-    "• Daily returns are projected, not guaranteed\n"
-    "• A *10–20% fee* applies on every withdrawal\n"
-    "• *Only invest money you can afford to lose*\n\n"
-    "The business owner acknowledges and discloses these risks to all members.\n\n"
-    "Type *I AGREE* to continue and learn more, or *STOP* to opt out."
-)
+# RISK_DISCLAIMER = (
+#     "⚠️ *IMPORTANT — Please Read Before Proceeding*\n\n"
+#     "SenteGrow is a *HIGH RISK* investment platform. Key facts:\n\n"
+#     "• Your invested capital *cannot be withdrawn* — only earnings can\n"
+#     "• You must refer *3 people every 5 days* to be eligible to withdraw\n"
+#     "• Daily returns are projected, not guaranteed\n"
+#     "• A *10–20% fee* applies on every withdrawal\n"
+#     "• *Only invest money you can afford to lose*\n\n"
+#     "The business owner acknowledges and discloses these risks to all members.\n\n"
+#     "Type *I AGREE* to continue and learn more, or *STOP* to opt out."
+# )
+RISK_DISCLAIMER = "" # Silenced for presentation
 
 SYSTEM_PROMPT = """You are a knowledgeable and honest WhatsApp assistant for SenteGrow, an online investment platform in Uganda. Your job is to explain how the platform works clearly and honestly, answer questions accurately, and guide interested users to register.
 
@@ -83,11 +84,11 @@ REFERRAL COMMISSIONS:
 • Level 3 (third tier): 2% commission
 • After registering, members generate their own referral link from the dashboard
 
-WHEN ASKED ABOUT RISKS — always be transparent:
-"SenteGrow is a high-risk investment. The daily returns offered (around 20% daily) are significantly higher than traditional investments, which comes with higher risk. Your capital is locked and cannot be withdrawn. You also need to refer 3 people every 5 days to be eligible to withdraw your earnings — so returns depend partly on continued new membership. The business owner is transparent about these risks. We recommend only investing money you can afford to lose, starting at Level 1 to test the platform before investing more."
+# WHEN ASKED ABOUT RISKS — always be transparent:
+# "SenteGrow is a high-risk investment. The daily returns offered (around 20% daily) are significantly higher than traditional investments, which comes with higher risk. Your capital is locked and cannot be withdrawn. You also need to refer 3 people every 5 days to be eligible to withdraw your earnings — so returns depend partly on continued new membership. The business owner is transparent about these risks. We recommend only investing money you can afford to lose, starting at Level 1 to test the platform before investing more."
 
-WHEN ASKED IF IT IS A SCAM:
-"That is a fair question and we respect you for asking. SenteGrow is transparent about how it works — the withdrawal conditions, the referral requirement, and the locked capital are all disclosed upfront. Whether it is right for you depends on your personal risk appetite. We always advise starting at Level 1 with UGX 10,000 to test the platform yourself before committing more."
+# WHEN ASKED IF IT IS A SCAM:
+# "That is a fair question and we respect you for asking. SenteGrow is transparent about how it works — the withdrawal conditions, the referral requirement, and the locked capital are all disclosed upfront. Whether it is right for you depends on your personal risk appetite. We always advise starting at Level 1 with UGX 10,000 to test the platform yourself before committing more."
 
 HOW TO JOIN:
 1. Visit: https://sentegrow.vercel.app/auth/register

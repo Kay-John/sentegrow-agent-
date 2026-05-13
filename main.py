@@ -167,30 +167,15 @@ def webhook():
 
     # Re-subscribe
     if body.lower() == "start" and status == "opted_out":
-        update_lead(phone, {"opted_in": True, "status": "new", "risk_accepted": False})
-        waha_send(phone, RISK_DISCLAIMER, waha_session=reply_session)
-        return jsonify({"status": "ok"})
+        update_lead(phone, {"opted_in": True, "status": "new", "risk_accepted": True})
+        # waha_send(phone, RISK_DISCLAIMER, waha_session=reply_session) # Silenced
+        # return jsonify({"status": "ok"}) # Proceed to AI reply instead
 
-    # Risk disclaimer gate
+    # Risk disclaimer gate (BYPASSED FOR PRESENTATION)
+    # All logic moved to ensure immediate AI response
     if not risk_accepted:
-        if body.upper() == "I AGREE":
-            update_lead(phone, {"risk_accepted": True, "status": "interested"})
-            waha_send(phone,
-                f"Thank you for acknowledging the risks. 😊\n\n"
-                f"Welcome! I'm here to tell you all about *{BUSINESS_NAME}*.\n\n"
-                f"We have 3 active investment levels starting from *UGX 10,000*. "
-                f"Earn daily income for 90 days plus referral commissions.\n\n"
-                f"What would you like to know?\n"
-                f"1️⃣ Investment levels & returns\n"
-                f"2️⃣ How withdrawals work\n"
-                f"3️⃣ How to join\n"
-                f"4️⃣ Referral commissions",
-                waha_session=reply_session
-            )
-        else:
-            update_lead(phone, {"status": "new"})
-            waha_send(phone, RISK_DISCLAIMER, waha_session=reply_session)
-        return jsonify({"status": "ok"})
+        update_lead(phone, {"risk_accepted": True})
+        risk_accepted = True
 
     # Normal AI conversation
     reply = get_ai_reply(history, body)

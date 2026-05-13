@@ -132,7 +132,7 @@
           <tr>
             <th>Phone</th>
             <th>Status</th>
-            <th>Risk Accepted</th>
+            <!-- <th>Risk Accepted</th> -->
             <th>Last Active</th>
             <th>Followed Up</th>
           </tr>
@@ -142,7 +142,7 @@
           <tr>
             <td>{{ lead.phone }}</td>
             <td><span class="badge badge-{{ lead.status }}">{{ lead.status }}</span></td>
-            <td>{{ '✅' if lead.risk_accepted else '❌' }}</td>
+            <!-- <td>{{ '✅' if lead.risk_accepted else '❌' }}</td> -->
             <td>{{ lead.last_message_at[:16].replace('T',' ') if lead.last_message_at else '—' }}</td>
             <td>{{ '✅' if lead.followed_up else '❌' }}</td>
           </tr>
