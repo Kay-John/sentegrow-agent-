@@ -152,6 +152,7 @@ def webhook():
     history      = lead.get("conversation_history") or []
     status       = lead.get("status", "new")
     risk_accepted = lead.get("risk_accepted", False)
+    print(f"[webhook] from={phone} body={body!r} has_media={has_media} risk_accepted={risk_accepted} status={status}")
 
     # Opt-out
     if body.lower() in ["stop", "unsubscribe", "quit"]:
