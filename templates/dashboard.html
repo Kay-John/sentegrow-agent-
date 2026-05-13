@@ -201,6 +201,7 @@
         <div style="border:1px solid #e2e8f0;border-radius:10px;padding:20px;">
           <h3 style="font-size:0.95rem;margin-bottom:12px;color:#1a56db;">🤖 Bot Number (replies to leads)</h3>
           <button class="btn btn-primary" onclick="startSession('default')" style="width:100%;margin-bottom:10px;">Start Bot Session</button>
+          <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:none;background:#e53e3e;color:white;cursor:pointer;font-size:0.9rem;font-weight:600;margin-bottom:10px;" onclick="restartSession('default')">🔄 Restart Session</button>
           <button class="btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:0.9rem;" onclick="loadQR('default')">Show QR Code</button>
           <div id="qr-default" style="margin-top:14px;text-align:center;"></div>
           <div id="status-default" style="margin-top:8px;font-size:0.82rem;color:#718096;text-align:center;"></div>
@@ -235,6 +236,24 @@ function showTab(name) {
 </script>
 
 <script>
+async function restartSession(name) {
+  document.getElementById('status-' + name).textContent = 'Restarting session...';
+  document.getElementById('qr-' + name).innerHTML = '';
+  if (qrInterval) { clearInterval(qrInterval); qrInterval = null; }
+  try {
+    const r = await fetch('/dashboard/waha/restart-session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session: name})
+    });
+    const d = await r.json();
+    document.getElementById('status-' + name).textContent = d.message || 'Done';
+    setTimeout(() => fetchQR(name), 5000);
+  } catch(e) {
+    document.getElementById('status-' + name).textContent = 'Error: ' + e.message;
+  }
+}
+
 async function startSession(name) {
   document.getElementById('status-' + name).textContent = 'Starting session...';
   try {

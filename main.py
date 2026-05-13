@@ -284,6 +284,21 @@ def waha_start_session():
         return jsonify({"message": f"Error: {str(e)}"}), 500
 
 
+@app.route("/dashboard/waha/restart-session", methods=["POST"])
+@login_required
+def waha_restart_session():
+    name = request.json.get("session", "default")
+    try:
+        requests.post(f"{WAHA_URL}/api/sessions/{name}/stop",
+                      headers=waha_headers(), timeout=30)
+        import time as t; t.sleep(2)
+        r = requests.post(f"{WAHA_URL}/api/sessions/{name}/start",
+                          headers=waha_headers(), timeout=30)
+        return jsonify({"message": f"Session restarted. Webhooks will reconnect — check logs in 5s."})
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
+
 @app.route("/dashboard/waha/qr/<session_name>")
 @login_required
 def waha_qr(session_name):
