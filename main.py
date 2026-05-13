@@ -40,7 +40,9 @@ OUTREACH_MESSAGE = (
 # ── WAHA helpers ──────────────────────────────────────────────────────────────
 
 def wa_id(phone):
-    """Convert +256771234567 → 256771234567@c.us"""
+    """Convert +256771234567 → 256771234567@c.us. Pass-through if already a chatId."""
+    if "@" in phone:
+        return phone.lstrip("+")
     return phone.lstrip("+").replace(" ", "") + "@c.us"
 
 
@@ -135,11 +137,14 @@ def webhook():
     if "@g.us" in raw_from or "@broadcast" in raw_from:
         return jsonify({"status": "ignored"})
 
-    raw_phone = raw_from.replace("@c.us", "")
-    if not raw_phone:
+    if not raw_from:
         return jsonify({"status": "ignored"})
 
-    phone = "+" + raw_phone.lstrip("+")
+    # Handle both @c.us (standard) and @lid (NOWEB engine) formats
+    if "@c.us" in raw_from:
+        phone = "+" + raw_from.replace("@c.us", "").lstrip("+")
+    else:
+        phone = raw_from.lstrip("+")
     body = (payload.get("body") or "").strip()
     has_media = payload.get("hasMedia", False)
     # Reply through whichever number received the message
