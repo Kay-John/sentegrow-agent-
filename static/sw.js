@@ -1,8 +1,12 @@
-const CACHE = "sentegrow-v1";
-const SHELL = ["/dashboard/login", "/subscribe", "/static/manifest.json"];
+const CACHE = "sentegrow-v2";
+const STATIC = [
+  "/static/manifest.json",
+  "/static/icon-192.png",
+  "/static/icon-512.png"
+];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
   self.skipWaiting();
 });
 
@@ -16,12 +20,38 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("fetch", e => {
-  const url = new URL(e.request.url);
-  if (url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/subscribe")) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  const { request } = e;
+  const url = new URL(request.url);
+
+  // Static assets — cache first
+  if (url.pathname.startsWith("/static/")) {
+    e.respondWith(
+      caches.match(request).then(cached => cached || fetch(request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(request, clone));
+        return res;
+      }))
+    );
     return;
   }
-  e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
-  );
+
+  // Dashboard pages — network first, fall back to cache
+  if (url.pathname.startsWith("/dashboard") || url.pathname === "/") {
+    e.respondWith(
+      fetch(request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(request, clone));
+          return res;
+        })
+        .catch(() => caches.match(request).then(cached => cached || new Response(
+          "<h2 style='font-family:sans-serif;padding:40px'>You're offline. Open the app when connected.</h2>",
+          { headers: { "Content-Type": "text/html" } }
+        )))
+    );
+    return;
+  }
+
+  // Everything else — network only
+  e.respondWith(fetch(request));
 });
