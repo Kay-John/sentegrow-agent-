@@ -100,7 +100,7 @@
         <label>WhatsApp Number (with country code)</label>
         <input type="tel" name="phone" placeholder="e.g. 256771234567" required>
         <div class="note">
-          ⚠️ In sandbox mode, the recipient must have joined the Twilio sandbox first by sending the join code to +1 415 523 8886. This restriction is removed on a production WhatsApp Business number.
+          ⚠️ Make sure the WhatsApp session is connected before sending. The recipient will receive the outreach message and the bot will handle their reply automatically.
         </div>
         <button type="submit" class="btn btn-primary">Send Message</button>
       </form>
@@ -115,7 +115,7 @@
         <label>Phone Numbers (one per line, with country code)</label>
         <textarea name="phones" rows="8" placeholder="256771234567&#10;256782345678&#10;256793456789" required></textarea>
         <div class="note">
-          ⚠️ Messages are sent one by one. Sandbox restriction applies — recipients must have joined the sandbox. Up to 50 numbers at a time.
+          ⚠️ Messages are sent one by one with a 45-second gap to avoid spam detection. Up to 50 numbers at a time.
         </div>
         <button type="submit" class="btn btn-primary">Send to All</button>
       </form>
