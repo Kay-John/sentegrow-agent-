@@ -288,13 +288,23 @@ def waha_start_session():
 @login_required
 def waha_restart_session():
     name = request.json.get("session", "default")
+    webhook_url = request.host_url.rstrip("/") + "/webhook"
     try:
-        requests.post(f"{WAHA_URL}/api/sessions/{name}/stop",
-                      headers=waha_headers(), timeout=30)
-        import time as t; t.sleep(2)
-        r = requests.post(f"{WAHA_URL}/api/sessions/{name}/start",
-                          headers=waha_headers(), timeout=30)
-        return jsonify({"message": f"Session restarted. Webhooks will reconnect — check logs in 5s."})
+        import time as t
+        requests.post(f"{WAHA_URL}/api/sessions/{name}/stop", headers=waha_headers(), timeout=15)
+        t.sleep(1)
+        requests.delete(f"{WAHA_URL}/api/sessions/{name}", headers=waha_headers(), timeout=15)
+        t.sleep(1)
+        r = requests.post(
+            f"{WAHA_URL}/api/sessions",
+            json={
+                "name": name,
+                "config": {"webhooks": [{"url": webhook_url, "events": ["message"]}]},
+                "start": True
+            },
+            headers=waha_headers(), timeout=30
+        )
+        return jsonify({"message": f"Session recreated with webhook → {webhook_url}. Scan the QR code to reconnect."})
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
 
