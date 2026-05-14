@@ -359,6 +359,13 @@ def dashboard():
     )
 
 
+@app.route("/dashboard/api/leads")
+@login_required
+def api_leads():
+    leads = sb.table("bot_leads").select("*").eq("client_id", CLIENT_ID).order("last_message_at", desc=True).execute().data or []
+    return jsonify(leads)
+
+
 @app.route("/dashboard/send", methods=["POST"])
 @login_required
 def dashboard_send():

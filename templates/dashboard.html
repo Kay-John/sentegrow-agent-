@@ -277,38 +277,13 @@
   <!-- Leads Table -->
   <div id="tab-leads" class="panel">
     <div class="card">
-      <div class="card-title">All Leads</div>
-      {% if leads %}
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Phone</th>
-              <th>Status</th>
-              <!-- <th>Risk Accepted</th> -->
-              <th>Last Active</th>
-              <th>Followed Up</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for lead in leads %}
-            <tr>
-              <td><strong>{{ lead.phone }}</strong></td>
-              <td><span class="badge badge-{{ lead.status }}">{{ lead.status }}</span></td>
-              <!-- <td>{{ '✅' if lead.risk_accepted else '❌' }}</td> -->
-              <td>{{ lead.last_message_at[:16].replace('T',' ') if lead.last_message_at else '—' }}</td>
-              <td>{{ '✅' if lead.followed_up else '❌' }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="card-title" style="justify-content:space-between;">
+        All Leads
+        <button class="btn btn-ghost" id="refresh-btn" onclick="refreshLeads()" style="padding:7px 14px;font-size:0.82rem;margin-top:0;">
+          <span id="refresh-icon">🔄</span> Refresh
+        </button>
       </div>
-      {% else %}
-      <div class="empty">
-        <div class="empty-icon">👥</div>
-        <p>No leads yet. Send your first outreach message to get started.</p>
-      </div>
-      {% endif %}
+      <div id="leads-container"></div>
     </div>
   </div>
 
@@ -476,6 +451,55 @@ async function checkSessions() {
     document.getElementById('session-status').textContent = 'Could not check status';
   }
 }
+
+// ── Leads table ──────────────────────────────────────────────────────────────
+const initialLeads = {{ leads | tojson }};
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderLeads(leads) {
+  const c = document.getElementById('leads-container');
+  if (!leads || !leads.length) {
+    c.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><p>No leads yet. Send your first outreach message to get started.</p></div>';
+    return;
+  }
+  const rows = leads.map(l => {
+    const st = esc(l.status || 'new');
+    const last = l.last_message_at ? esc(l.last_message_at.substring(0,16).replace('T',' ')) : '—';
+    return `<tr>
+      <td><strong>${esc(l.phone)}</strong></td>
+      <td><span class="badge badge-${st}">${st}</span></td>
+      <td>${last}</td>
+      <td>${l.followed_up ? '✅' : '❌'}</td>
+    </tr>`;
+  }).join('');
+  c.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Phone</th><th>Status</th><th>Last Active</th><th>Followed Up</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+async function refreshLeads() {
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  btn.disabled = true;
+  icon.textContent = '⏳';
+  try {
+    const r = await fetch('/dashboard/api/leads');
+    const data = await r.json();
+    renderLeads(data);
+  } catch(e) {
+    console.error('Refresh failed:', e);
+  } finally {
+    btn.disabled = false;
+    icon.textContent = '🔄';
+  }
+}
+
+renderLeads(initialLeads);
 </script>
 
 <script>
